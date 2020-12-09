@@ -1,0 +1,230 @@
+<!DOCTYPE HTML >
+<html>
+<head>
+<title>Volumen de combustible en tanque según altura en cm</title>
+<META http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="text/javascript" ></script>
+
+</head>
+
+    <body>
+
+    <h2>Calcular</h2>
+
+
+
+
+
+    <script>
+function calculate()
+{ document.getElementById("status").innerHTML ="";
+  document.activeElement.blur();  
+
+  var vdiam  = document.getElementById("diam").value;
+  var vlen   = document.getElementById("len").value;
+  var vdepth = document.getElementById("depth").value;
+  var res = 0; 
+
+  //Asegurarse de tener tres valores
+  var count = countInputs();
+  if(count !=3)
+	{ document.getElementById("status").innerHTML = "Ingresar los tres valores";
+	  return;
+	}
+
+  //Convertir los valores ingresados en números
+  d = new Number(vdiam);
+  l = new Number(vlen);
+  h = new Number(vdepth);
+  r = d/2;
+
+  if(negative(d)) return;
+  if(negative(l)) return;
+  if(negative(h)) return;
+
+  //Asegurarse que el alto sea mayor al diametro
+  if(h>d)
+	{ complain("Profundidad es mayor que el diametro");
+      return;
+    }
+
+
+
+  //calcular
+  var segArea =r*r*Math.acos((r-h)/r) - (r-h)*Math.sqrt(2*r*h-h*h);
+  res = segArea*l;
+  if(isNaN(res))
+	{ complain("Solo números positivos!!!");
+	  res = "";
+      return;
+	}
+
+  //Ajustar para unidades elegidas
+  switch(document.getElementById("units").value)
+	{ case "none"   :  res = res;          break;  // no se convierte
+      case "metric" :  res = res*264.172;     break;  // resultado es en metros cubicos, convertir a galones
+      case "us"     :  res = res*0.004329; break;  // resultado es en pulgadas cubicas, convertir a galones
+	}
+
+  document.getElementById("vol").innerHTML = round(res);
+  document.activeElement.blur();  //make ipad keyboard close now.
+}
+
+
+function negative(n)
+{ if(n<0)
+     complain("Negative input");
+  return (n<0);
+}
+
+
+function set(id,val)
+{ document.getElementById(id).innerHTML = val;
+}
+
+
+function complain(s)
+{ document.getElementById("status").innerHTML =  s;
+  document.getElementById("vol").value = "";
+}
+
+function clear(id)
+{ document.getElementById(id).value = "";
+}
+
+
+function countInputs()
+{ var count = 0;
+  var inputs = document.getElementsByClassName("inp");
+  for (var i=0; i<3 ; i++ )
+    { if(inputs[i].value.length>0) count++;
+    }
+  return count;
+}
+
+
+function keyPress(inputField, e)
+{
+  if(e.keyCode==13) calculate();
+}
+
+function clearAll()
+{ document.getElementById("status").innerHTML = "";
+  var inputs = document.getElementsByClassName("inp");
+  for (var i=0; i<inputs.length ;i++ )
+    { inputs[i].value = "";
+    }
+  document.getElementById("vol").innerHTML = "&nbsp;";
+
+}
+
+function round(d)
+// Número redondeado a 4 decimales.
+{ var multiplier = 10000;
+  return Math.round(d*multiplier) / multiplier;
+};
+
+
+function selectUnits()
+{ // Unidades
+  var inLabel, outLabel;
+  var choice = document.getElementById("units");
+  switch(choice.selectedIndex)
+	{ case 0: inLabel="";       outLabel = "";        break;
+      case 1: inLabel="metros"; outLabel = "galones";  break;
+      case 2: inLabel="pulgadas"; outLabel = "galones"; break;
+	}
+
+   //install them
+   set("diamunits",  inLabel);
+   set("lenunits",   inLabel);
+   set("depthunits", inLabel);
+   set("volunits",   outLabel);
+
+   
+   calculate();
+}
+    </script>
+
+
+
+
+
+
+
+
+<TABLE class="calculator" border="0" id = "calcTable">
+<TR>
+	<TD align="right">Unidades</TD>
+	<TD><select id="units" onchange="selectUnits()" autocomplete="off">
+		  <option value="none" selected>Normales o Americanas?</option> 
+		  <option value="metric">Normales</option>
+		  <option value="us">Americanas</option>
+</select>
+</TD>
+</TR>
+
+<TR>
+	<TD colspan="3"><div class="filler"></div></TD>
+</TR>
+
+<TR>
+	<TD align="right">Diametro </TD>
+	<TD><input id ="diam" class="inp" type="number" onkeydown="keyPress(this,event)" autocomplete="off"></TD>
+	<TD style="width:60px" id="diamunits"></TD>
+</TR>
+<TR>
+	<TD align="right">Largo (Alto, whatever)</TD>
+	<TD><input id="len" type="number" class="inp"  onkeydown="keyPress(this,event)" autocomplete="off"></TD>
+	<TD id="lenunits"></TD>
+</TR>
+<TR>
+	<TD align="right">Medida de regla</TD>
+	<TD><input id="depth" type="number" class="inp"  onkeydown="keyPress(this,event)" autocomplete="off"></TD>
+	<TD id="depthunits"></TD>
+</TR>
+
+<TR>
+	<TD colspan="3"><div class="filler"></div></TD>
+</TR>
+
+<TR>
+	<TD align="right">Volumen </TD>
+	<TD><div id="vol"  class="output">&nbsp;</div></TD>
+	<TD id="volunits"></TD>
+</TR>
+<TR>
+	<TD align="center"  height="50" colspan="3">
+	  <button  onclick="calculate()" >Calcular</button>
+	  <button  onclick="clearAll()" >Borrar</button>
+	</TD>
+</TR>
+<TR>
+	<TD colspan="3" align="center" id="status" >&nbsp;</TD>
+<TR>
+</TABLE>
+
+
+
+<h2>Formula:</h2>
+<p>Ecuación ("L(R^2'cos'^{-1}({R-D}/R)-(R-D)@sqrt{2RD-D^2} )</p>
+
+Donde:<br>
+<i>R</i> &nbsp;es el  <b>radio</b> del clindro.<br>
+<i>D</i> &nbsp;es la profundidad.<br>
+<i>L</i> &nbsp; largo del cilindro.
+</p>
+
+
+<b>Notas</b>: 
+<ul>
+<li>El resultado de la función cos<sup>-1</sup> en la formula esta en radianes.
+<li>La formula usa el radio del cilindro.  Esto es la mitad del diametro.
+<li>Los datos a ingresar deber ser en las mismas unidades.  
+El resultado sera en metros cúbicos y se transformará internamente a galones, 
+según la formula que es m3 * 264.172 = galones.
+</ul>
+
+    </body>
+</html>
